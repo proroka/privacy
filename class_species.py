@@ -29,7 +29,7 @@ class Species:
 
 
     def get_state(self, state):
-        return np.mean(self.robots[:,state])
+        return np.sum(self.robots[:,state])
 
 
     def update_states(self):

@@ -28,7 +28,7 @@ verbose = False
 # Global settings
 tmax = 100
 num_species = 3
-num_robots = [10, 10, 10];
+num_robots = 2* [10, 10, 10];
 
 # set the transitioning probabilities
 prob = [];
@@ -113,9 +113,10 @@ for t in range(tmax):
         for s in range(num_species):
             if (np.sum(species[s].robots[:,m])) > 0:
                 s_list.append(s)
+        s_list_t = tuple(s_list)
         # find wait-state and increment
-        if s_list in wait_states:
-            ind = wait_states.index(s_list)
+        if tuple(s_list_t) in wait_states:
+            ind = wait_states.index(s_list_t)
             num_waiting[t,ind] =  num_waiting[t,ind] + 1 
 
 
@@ -128,23 +129,30 @@ plot_on = True
 
 if plot_on:
     fig = plt.figure(figsize=(6,4))
-    st = 0
-    plt.plot(evol[0,:,st],'blue')
-    plt.plot(evol[1,:,st],'red')
-    plt.ylim([0, 1])
+    fig.suptitle('Number of Robots in Search')
+    i_state = 0
+    i_species = 0
+    plt.plot(evol[i_species,:,i_state],'blue')
+    i_species = 1
+    plt.plot(evol[i_species,:,i_state],'red')
+    #plt.ylim([0, 1])
     plt.show()    
 
     fig = plt.figure(figsize=(6,4))
+    fig.suptitle('Number of Robots at Task 1')
     st = 1
     plt.plot(evol[0,:,st],'blue')
     plt.plot(evol[1,:,st],'red')
-    plt.ylim([0, 1])
+    plt.ylim([0, 1.2])
     plt.show()        
 
+
     fig = plt.figure(figsize=(6,4))
+    fig.suptitle('Number of Waiting Robots')
     plt.plot(num_waiting[:,0],'blue')
     plt.plot(num_waiting[:,1],'red')
     plt.plot(num_waiting[:,3],'green')
     plt.plot(num_waiting[:,4],'cyan')
+    plt.plot(num_waiting[:,5],'magenta')
     #plt.ylim([0, 1])
     plt.show()    
