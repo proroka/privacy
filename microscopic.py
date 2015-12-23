@@ -16,57 +16,9 @@ import matplotlib.pyplot as plt
 
 # My modules
 from utility_functions import *
+from class_species import *
 
-#----------------------------------------------------------------------
-# Define class
-
-class Species:
-    def __init__(self, N, M, prob):
-        self.num_robots = N
-        self.num_states = M
-        self.prob = prob
-
-        
-        self.robots = np.zeros((self.num_robots, self.num_states))
-        
-        # all robots start in state 1 (search)
-        self.robots[:,0] = np.ones((self.num_robots,))
-
-
-    def get_state(self, state):
-        return np.mean(self.robots[:,state])
-
-
-    def update_states(self):
-        # iterate through robots
-        for r in range(self.num_robots):
-            # get current state
-            curr = np.where(self.robots[r,:])[0][0] # where() returns list of arrays
-            new = pick_transition(self.prob[curr,:])
-            if (curr != new): # move robot back to search
-                if new == 0:
-                    self.robots[r,curr] = 0
-                    self.robots[r,new] = 1
-                else: # check if any other robots present at task
-                    if (np.sum(self.robots[:,new]) < 1):
-                        self.robots[r,curr] = 0
-                        self.robots[r,new] = 1
-                    
-    # move numerous robots back to search                
-    def transition_to_search_n(self, task, num): 
-        ind = np.where(self.robots[:,task])[0]
-        for i in range(num):
-            rand = np.random.randint(0,np.size(ind))
-            self.robots[ind[rand],task] = 0
-            self.robots[ind[rand],0] = 1
-            
-    # move only robot back to search        
-    def transition_to_search(self, task): 
-        ind = np.where(self.robots[:,task])[0][0]
-        self.robots[ind,task] = 0
-        self.robots[ind,0] = 1                  
- 
-                   
+                  
 
 #----------------------------------------------------------------------
 # Create robot community
@@ -75,30 +27,30 @@ verbose = False
 
 # Global settings
 tmax = 100
-num_species = 2
-num_robots = [20, 10];
+num_species = 3
+num_robots = [10, 10, 10];
+
+# set the transitioning probabilities
+prob = [];
+ps = np.array([[0.6, 0.8], [0.7, 0.9], [0.5, 0.5]]) # p00 and p_wait for each species
+for s in range(num_species):
+    temp = build_probabilities(num_states, ps[s,0], ps[s,1])
+    prob.append(temp)
+
 # states: 0 is search, 1-M are tasks
 num_tasks = 30;
 num_states = num_tasks + 1;
 
 # robots are either searching or waiting to collaborate
-num_wait_states = np.power(2, num_species) - 2 # power set without empty and complete sets
 num_searching = np.zeros((tmax, num_species))
+
+# generate wait states
+wait_states = list(subsets(range(num_species)))
+# remove empty set and full set
+wait_states = wait_states[1:-1]
+num_wait_states = len(wait_states)
 num_waiting = np.zeros((tmax, num_wait_states))
 
-
-# set the transitioning probabilities
-prob = [];
-
-p00 = 0.6
-p_wait = 0.8
-prob_s0 = build_probabilities(num_states, p00, p_wait)
-p00 = 0.7
-p_wait = 0.9
-prob_s1  = build_probabilities(num_states, p00, p_wait)
-
-prob.append(prob_s0)
-prob.append(prob_s1)
 
 # Create list of species
 species = []
@@ -150,17 +102,28 @@ for t in range(tmax):
             
     if verbose: print '***'
 
-    # summarize 
-#    for s in range(num_species):
-#        num_searching[t,s] = np.sum(species[s].robots[:,0])
-#    for i in range(num_wait_states):
-#        num_waiting[t,i]
-    
+    # summarize number of robots in search
+    for s in range(num_species):
+        num_searching[t,s] = np.sum(species[s].robots[:,0])
+        
+    # summarize number of robots waiting to collaborate    
+    for m in range(1, num_states):
+        s_list = []
+        # get list of speices waiting at this task
+        for s in range(num_species):
+            if (np.sum(species[s].robots[:,m])) > 0:
+                s_list.append(s)
+        # find wait-state and increment
+        if s_list in wait_states:
+            ind = wait_states.index(s_list)
+            num_waiting[t,ind] =  num_waiting[t,ind] + 1 
 
 
 
 
-#----------------------------------------------------------------------    
+#----------------------------------------------------------------------   
+# Plots
+ 
 plot_on = True
 
 if plot_on:
@@ -177,3 +140,11 @@ if plot_on:
     plt.plot(evol[1,:,st],'red')
     plt.ylim([0, 1])
     plt.show()        
+
+    fig = plt.figure(figsize=(6,4))
+    plt.plot(num_waiting[:,0],'blue')
+    plt.plot(num_waiting[:,1],'red')
+    plt.plot(num_waiting[:,3],'green')
+    plt.plot(num_waiting[:,4],'cyan')
+    #plt.ylim([0, 1])
+    plt.show()    
