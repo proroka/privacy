@@ -5,15 +5,17 @@ Created on Mon Dec 21 10:53:42 2015
 
 """
 
-
+# Standard modules
 import numpy as np
-import scipy as sp
-import pylab as pl
+#import scipy as sp
+#import pylab as pl
 import matplotlib.pyplot as plt
-import sys
-import time
-import pickle
+#import sys
+#import time
+#import pickle
 
+# My modules
+from utility_functions import *
 
 #----------------------------------------------------------------------
 # Define class
@@ -41,59 +43,49 @@ class Species:
             # get current state
             curr = np.where(self.robots[r,:])[0][0] # where() returns list of arrays
             new = pick_transition(self.prob[curr,:])
-            if curr != new: # move robot
+            if (curr != new): # move robot back to search
+                if new == 0:
                     self.robots[r,curr] = 0
                     self.robots[r,new] = 1
+                else: # check if any other robots present at task
+                    if (np.sum(self.robots[:,new]) < 1):
+                        self.robots[r,curr] = 0
+                        self.robots[r,new] = 1
                     
-    def transition_to_search(self, task, num): 
+    # move numerous robots back to search                
+    def transition_to_search_n(self, task, num): 
         ind = np.where(self.robots[:,task])[0]
         for i in range(num):
             rand = np.random.randint(0,np.size(ind))
             self.robots[ind[rand],task] = 0
             self.robots[ind[rand],0] = 1
             
-                       
+    # move only robot back to search        
+    def transition_to_search(self, task): 
+        ind = np.where(self.robots[:,task])[0][0]
+        self.robots[ind,task] = 0
+        self.robots[ind,0] = 1                  
  
                    
-#----------------------------------------------------------------------
-# Define utility functions
-                   
-# input: a row from transition probability matrix
-def pick_transition(p):
-    rand = np.random.rand(1)
-    v = 0
-    for i in range(np.size(p)):
-        v += p[i]
-        if rand <= v:
-            return i
-    # Should not happen (unless probabilities do not sum to 1 exactly).
-    return np.size(p) - 1
-
-
-def build_probabilities(num_states, p00, p_wait):
-    p = np.zeros((num_states, num_states))
-    # first row: search to tasks
-    p0x = (1. - p00) / (num_states - 1.)
-    p[0, 0] = p00
-    p[0,1:] = p0x
-    # tasks
-    p[1:,1:] = p[1:,1:] + np.eye(num_states -1) * p_wait
-    p_fail = 1 - p_wait
-    p[1:,0] = p_fail
-    
-    return p
-
 
 #----------------------------------------------------------------------
 # Create robot community
 
 verbose = False
 
+# Global settings
+tmax = 100
 num_species = 2
 num_robots = [20, 10];
 # states: 0 is search, 1-M are tasks
 num_tasks = 30;
 num_states = num_tasks + 1;
+
+# robots are either searching or waiting to collaborate
+num_wait_states = np.power(2, num_species) - 2 # power set without empty and complete sets
+num_searching = np.zeros((tmax, num_species))
+num_waiting = np.zeros((tmax, num_wait_states))
+
 
 # set the transitioning probabilities
 prob = [];
@@ -124,9 +116,8 @@ if verbose:
             n.append(nt)
     print '***'
  
-tmax = 100
-evol = np.zeros((num_species, tmax, num_states))
 
+evol = np.zeros((num_species, tmax, num_states))
    
 # Run simulation
 for t in range(tmax):
@@ -145,21 +136,27 @@ for t in range(tmax):
             if verbose:
                 print 'T:',t, 'State: ', m, 'Species: ', s, 'Sum: ', temp
             at_task.append(temp)
-        #print at_task    
         # get collaborative tasks (1 of each species needed)
         num_collab = int(min(at_task))
         #print num_collab
         if (num_collab > 0 and m!=0):
             if verbose:
-                print 'At state: ', m, 'moving ', num_collab, 'robots back to search'
+                print 'At state: ', m, 'moving ', num_collab, 'robot back to search'
             # get number of robots per species to be removed
             #new_at_task = at_task - min(at_task)
             # for each species, update states (put back into search)
             for s in range(num_species):
-                species[s].transition_to_search(m, num_collab)
+                species[s].transition_to_search(m)
             
-
     if verbose: print '***'
+
+    # summarize 
+#    for s in range(num_species):
+#        num_searching[t,s] = np.sum(species[s].robots[:,0])
+#    for i in range(num_wait_states):
+#        num_waiting[t,i]
+    
+
 
 
 

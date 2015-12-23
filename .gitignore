@@ -1,0 +1,9 @@
+# ignore generated .pyc files,
+*.pyc
+stochastic/data/*
+stochastic/plots/*
+testing/*
+stochastic/bak/*
+stochastic/old
+stochastic/const/*
+.DS_Store
