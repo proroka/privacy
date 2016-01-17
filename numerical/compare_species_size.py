@@ -1,14 +1,11 @@
 import argparse
 import itertools
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 import numpy as np
 import pickle
 from scipy import interpolate
 
-import crn
-import plot_utils
-import run_system as system
+import crn_core
 
 # Default rate for all species for EXPLORE -> WAIT.
 _DEFAULT_ALPHA = 0.2
@@ -27,8 +24,7 @@ def RunSystem(populations, args):
     global first_run
 
     # Ignore collaboration rate.
-    crn_model = system.SetupCRN(populations, args.stochkit_path, add_collaboration_state=False,
-                                alpha=args.alpha, beta=args.beta)
+    crn_model = crn_core.TaskCRNSetup(populations, args.stochkit_path,  alpha=args.alpha, beta=args.beta)
     # Run simulation.
     if args.cme:
         # Try to be more precise at the beginning.
@@ -40,15 +36,15 @@ def RunSystem(populations, args):
         output = crn_model.CME(time_steps)
     else:
         output = crn_model.Simulate(duration=args.duration, nruns=args.nruns)
-    aggregated_output = system.ExtractObservableData(output)
+    aggregated_output = crn_core.TaskCRNExtractObservableData(output)
     if args.plot_first_run and first_run:
         print 'Showing plot for the population:', populations
-        p = plot_utils.Plotter(aggregated_output)
+        p = crn_core.Plotter(aggregated_output)
         p.AverageTrajectory()
         p.Distributions(from_timestamp=args.duration / 2.0)
         plt.show()
         first_run = False
-    return crn.BuildDistribution(aggregated_output, from_timestamp=args.duration / 2.0)
+    return crn_core.BuildDistribution(aggregated_output, from_timestamp=args.duration / 2.0)
 
 
 def GetAllEpsilons(args):
@@ -99,7 +95,7 @@ def GetAllEpsilons(args):
             if combination in min_epsilons_cache:
                 min_epsilon = min_epsilons_cache[combination]
             else:
-                min_epsilon = crn.CompareDistributions(base_distribution, alternative_distribution, prune=1e-3)
+                min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution, prune=1e-3)
                 min_epsilons_cache[combination] = min_epsilon
             # Store difference.
             max_min_epsilon = max(max_min_epsilon, min_epsilon)
