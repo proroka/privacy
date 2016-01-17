@@ -122,18 +122,7 @@ def CompareDistributions(A, B, prune=_EPSILON):
         if k not in A and v > prune:
             all_values.append(float('inf'))
     return max(all_values)
-
-
-def choose_iter(elements, length):
-    for i in xrange(len(elements)):
-        if length == 1:
-            yield (elements[i],)
-        else:
-            for next in choose_iter(elements[i+1:len(elements)], length-1):
-                yield (elements[i],) + next
-def choose(l, k):
-    return list(choose_iter(l, k))
-    
+ 
 #-----------------------------------------------------------
 # Main
 plot_on = False
@@ -143,9 +132,7 @@ p = get_stationary_distr(z1, z2, z4, a1, a2, b1, b2)
 if plot_on: plot_distr(p), plt.show()
 
 # loop for varying populations
-# loop for all adjacent databases for a given population
-ind = [0, 1, 2] # z1, z2, z4
-base = np.array([0, 0, 0])
+
 pop = np.array([z1, z2, z4])
 # no species can be 0
 # CHECK
@@ -153,20 +140,20 @@ pop = np.array([z1, z2, z4])
 # number of epsilon values: number of permutations
 epsilons = []#np.zeros(num_species * (num_species-1))
 
-for change_ind in itertools.permutations(ind, 2): # first: +1, second: -1
-    bt = base.copy()
-    bt[change_ind[0]] += 1
-    bt[change_ind[1]] -= 1
+# loop for all adjacent databases for a given population
+for change_ind in itertools.permutations(range(3), 2): # first: +1, second: -1
+    bt = np.array([0, 0, 0])
+    bt[change_ind[0]] = 1
+    bt[change_ind[1]] = -1
     # adjacent population
     pop_adj = pop + bt
     # check if any negative
     print pop_adj
     
-    p = get_stationary_distr(z1, z2, z4, a1, a2, b1, b2)
     p_adj = get_stationary_distr(pop_adj[0], pop_adj[1], pop_adj[2], a1, a2, b1, b2)
     
     max_diff = CompareDistributions(p, p_adj, prune=_EPSILON)
-    max_diff = CompareDistributions(p, p, prune=_EPSILON)
+    #max_diff = CompareDistributions(p, p, prune=_EPSILON)
     print max_diff
     
     epsilons.append(max_diff)
