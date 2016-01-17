@@ -122,23 +122,35 @@ def CompareDistributions(A, B, prune=_EPSILON):
         if k not in A and v > prune:
             all_values.append(float('inf'))
     return max(all_values)
- 
+    
+def BuildObservableDistr(p):
+    new_p = {}
+    for k, v in p.iteritems():
+        new_k = (k[0]+k[1]+k[3], k[2]+k[4])
+        if new_k not in new_p:
+            new_p[new_k] = 0.
+        new_p[new_k] += v
+    return new_p
+    
+       
 #-----------------------------------------------------------
 # Main
 plot_on = False
     
 p = get_stationary_distr(z1, z2, z4, a1, a2, b1, b2)
+p_obs = BuildObservableDistr(p)
 
 if plot_on: plot_distr(p), plt.show()
 
 # loop for varying populations
 
 pop = np.array([z1, z2, z4])
+if pop[0]<1 or pop[1]<0 or pop[2]<0: print "Species cannot be 0"
 # no species can be 0
 # CHECK
 
-# number of epsilon values: number of permutations
-epsilons = []#np.zeros(num_species * (num_species-1))
+# number of epsilon values
+epsilons = []
 
 # loop for all adjacent databases for a given population
 for change_ind in itertools.permutations(range(3), 2): # first: +1, second: -1
@@ -151,10 +163,11 @@ for change_ind in itertools.permutations(range(3), 2): # first: +1, second: -1
     print pop_adj
     
     p_adj = get_stationary_distr(pop_adj[0], pop_adj[1], pop_adj[2], a1, a2, b1, b2)
+    p_adj_obs = BuildObservableDistr(p_adj)
     
-    max_diff = CompareDistributions(p, p_adj, prune=_EPSILON)
+    max_diff = CompareDistributions(p_obs, p_adj_obs, prune=_EPSILON)
     #max_diff = CompareDistributions(p, p, prune=_EPSILON)
-    print max_diff
+    #print max_diff
     
     epsilons.append(max_diff)
     
