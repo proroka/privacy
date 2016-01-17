@@ -4,15 +4,13 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
+import pickle
+
 
 a1 = 1.0
 a2 = 1.0
 b1 = 1.0
 b2 = 1.0
-
-z1 = 5
-z2 = 6
-z4 = 8
 
 _EPSILON = 1e-5
 
@@ -132,46 +130,65 @@ def BuildObservableDistr(p):
         new_p[new_k] += v
     return new_p
     
+def MaxLeakage(pop, p_obs):
+    # number of epsilon values
+    epsilons = []
+    # loop for all adjacent databases for a given population
+    for change_ind in itertools.permutations(range(3), 2): # first: +1, second: -1
+        bt = np.array([0, 0, 0])
+        bt[change_ind[0]] = 1
+        bt[change_ind[1]] = -1
+        # adjacent population
+        pop_adj = pop + bt
+        #print pop_adj
+    
+        p_adj = get_stationary_distr(pop_adj[0], pop_adj[1], pop_adj[2], a1, a2, b1, b2)
+        p_adj_obs = BuildObservableDistr(p_adj)
+    
+        max_diff = CompareDistributions(p_obs, p_adj_obs, prune=_EPSILON)
+        epsilons.append(max_diff)
+    
+    return max(epsilons)
        
 #-----------------------------------------------------------
 # Main
 plot_on = False
     
-p = get_stationary_distr(z1, z2, z4, a1, a2, b1, b2)
-p_obs = BuildObservableDistr(p)
+#p = get_stationary_distr(z1, z2, z4, a1, a2, b1, b2)
+#p_obs = BuildObservableDistr(p)
+#if plot_on: plot_distr(p), plt.show() 
+#if plot_on: plot_distr(p_obs, ('a', 'b', 'c')), plt.show() 
 
-if plot_on: plot_distr(p), plt.show()
+
+run = 1
+
+#z4 = 50
+#s_range = range(25,100,2)
+
+z4 = 50
+s_range = range(49,52)
+
+epsilon = np.zeros((len(s_range),len(s_range)))
+save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
 
 # loop for varying populations
+for i in range(len(s_range)):
+    z1 = s_range[i]
+    for j in range(len(s_range)):
+        z2 = s_range[j]
+        pop = np.array([z1, z2, z4])
+        if pop[0]<1 or pop[1]<0 or pop[2]<0: print "Species cannot be 0"
+        
+        print "Solving population (", i*len(s_range)+j, '/', len(s_range)**2,'): ', pop
+        p = get_stationary_distr(pop[0], pop[1], pop[2], a1, a2, b1, b2)
+        p_obs = BuildObservableDistr(p)
 
-pop = np.array([z1, z2, z4])
-if pop[0]<1 or pop[1]<0 or pop[2]<0: print "Species cannot be 0"
-# no species can be 0
-# CHECK
+        # builds all adjacent populations and gets max leakage
+        epsilon[i,j] = MaxLeakage(pop, p_obs)
 
-# number of epsilon values
-epsilons = []
+pickle.dump(epsilon, open(save_epsilon, 'w'))
+print epsilon
 
-# loop for all adjacent databases for a given population
-for change_ind in itertools.permutations(range(3), 2): # first: +1, second: -1
-    bt = np.array([0, 0, 0])
-    bt[change_ind[0]] = 1
-    bt[change_ind[1]] = -1
-    # adjacent population
-    pop_adj = pop + bt
-    # check if any negative
-    print pop_adj
-    
-    p_adj = get_stationary_distr(pop_adj[0], pop_adj[1], pop_adj[2], a1, a2, b1, b2)
-    p_adj_obs = BuildObservableDistr(p_adj)
-    
-    max_diff = CompareDistributions(p_obs, p_adj_obs, prune=_EPSILON)
-    #max_diff = CompareDistributions(p, p, prune=_EPSILON)
-    #print max_diff
-    
-    epsilons.append(max_diff)
-    
-print epsilons
 
 
 
