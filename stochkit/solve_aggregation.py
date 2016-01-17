@@ -75,7 +75,7 @@ def get_stationary_distr(z1, z2, z4):
                 ci = sol[i]
                 xi = currx[i]
                 #p *= ci^xi / xi! * exp(-ci):
-                p *= (math.pow(ci,xi) / math.factorial(xi) * math.exp(ci))
+                p *= (math.pow(ci,xi) / math.factorial(xi) * math.exp(-ci))
                 # use dummy function to test:
                 #p *= ci * xi
                 
