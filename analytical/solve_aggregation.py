@@ -17,36 +17,77 @@ _EPSILON = 1e-5
 #-----------------------------------------------------------
 # Define functions
 
+# def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
+#     #x3 = Symbol('x3', real=True, nonnegative=True)
+#     x3 = Symbol('x3')
+#     solutions = solve(
+#         [
+#             a1*(z1-x3-z4+(b2*z4 / (b1*x3 + b2)))*(z2-x3-z4+(b2*z4 / (b1*x3 + b2))) - a2*x3
+#         ],
+#         dict=True)
+#
+#     print solutions
+#
+#     cnt = 0
+#     for s in solutions:
+#         _x3 = float(s[x3])
+#         x4 = b2 * z4 / (b1 * _x3 + b2)
+#         x5 = z4 - x4
+#         x1 = z1 - _x3 - x5
+#         x2 = z2 - _x3 - x5
+#
+#         print x1
+#         print x2
+#         print x4
+#         print x5
+#
+#         if (x1>=0. and x2>=0. and x4>=0. and x5>=0.):
+#             cnt += 1
+#             sol = [x1, x2, _x3, x4, x5]
+#
+#     #print sol
+#     if cnt == 1:
+#         return sol
+#     return None
+
 def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
-    x3 = Symbol('x3', real=True, nonnegative=True)
+    x3 = Symbol('x3')
     solutions = solve(
         [
             a1*(z1-x3-z4+(b2*z4 / (b1*x3 + b2)))*(z2-x3-z4+(b2*z4 / (b1*x3 + b2))) - a2*x3
         ],
         dict=True)
 
-    #print solutions
-    
     cnt = 0
-    for s in solutions: 
-        _x3 = float(s[x3])
-        x4 = b2 * z4 / (b1 * _x3 + b2)
+    for s in solutions:
+        #print s
+        _x3 = s[x3]
+        x3_value = None
+        re, im = _x3.as_real_imag()
+        if float(im) < 1e-6:
+            x3_value = float(re)
+    
+        if x3_value is None or x3_value < 0.:
+            continue
+
+        x4 = b2 * z4 / (b1 * x3_value + b2)
         x5 = z4 - x4
-        x1 = z1 - _x3 - x5
-        x2 = z2 - _x3 - x5
-        
+        x1 = z1 - x3_value - x5
+        x2 = z2 - x3_value - x5
+
         if (x1>=0. and x2>=0. and x4>=0. and x5>=0.):
             cnt += 1
-            sol = [x1, x2, _x3, x4, x5]
+            sol = [x1, x2, x3_value, x4, x5]
 
-    if cnt == 1:        
+    if cnt == 1:
         return sol
+    print 'Oops. Number of solutions:', cnt
     return None
         
         
 def get_stationary_distr(z1, z2, z4, a1, a2, b1, b2):
     sol = get_stationary_c(float(z1), float(z2), float(z4), a1, a2, b1, b2)    
-    #print sol
+    if sol is None: return None
     
     prob = dict()
     
@@ -66,10 +107,10 @@ def get_stationary_distr(z1, z2, z4, a1, a2, b1, b2):
             # compute formula for stationary distribution f(c_i, x_i):
             p = 1
             for ci, xi in zip(sol, currx):
-                
-                #p *= ci^xi / xi! * exp(-ci):
-                p *= math.pow(ci,xi) / math.factorial(xi) #* math.exp(-ci))
-                
+                #p *= math.pow(ci,xi) / math.factorial(xi) 
+                for i in range(1, xi + 1):
+                    p *= ci / float(i)
+                    
             # return dict with key(x_i values) value(eval pi(x_i values))
             prob[(x1, x2, x3, x4, x5)] = p
             sum_p += p
@@ -109,17 +150,17 @@ def plot_distr(prob, species_name=('a', 'b', 'c', 'd', 'e')):
  
 # Compares two distributions computed by BuildDistribution().
 def CompareDistributions(A, B, prune=_EPSILON):
-    all_values = []
-    for k, v in A.iteritems():
-        if k in B and (v > prune or B[k] > prune):
-            all_values.append(np.abs(np.log(A[k]) - np.log(B[k])))
-        elif k not in B and v > prune:
-            all_values.append(float('inf'))
-        # Ignore when one is larger and the other one is smaller or when both are smaller.
-    for k, v in B.iteritems():
-        if k not in A and v > prune:
-            all_values.append(float('inf'))
-    return max(all_values)
+   all_values = []
+   for k, v in A.iteritems():
+       if k in B:
+           all_values.append(np.abs(np.log(A[k] + prune) - np.log(B[k] + prune)))
+       elif k not in B:
+           all_values.append(np.abs(np.log(A[k] + prune) - np.log(prune)))
+       # Ignore when one is larger and the other one is smaller or when both are smaller.
+   for k, v in B.iteritems():
+       if k not in A:
+           all_values.append(np.abs(np.log(prune) - np.log(B[k] + prune)))
+   return max(all_values)
     
 def BuildObservableDistr(p):
     new_p = {}
@@ -140,14 +181,18 @@ def MaxLeakage(pop, p_obs):
         bt[change_ind[1]] = -1
         # adjacent population
         pop_adj = pop + bt
-        #print pop_adj
-    
+        
         p_adj = get_stationary_distr(pop_adj[0], pop_adj[1], pop_adj[2], a1, a2, b1, b2)
+        if p_adj is None: continue
         p_adj_obs = BuildObservableDistr(p_adj)
-    
+        
         max_diff = CompareDistributions(p_obs, p_adj_obs, prune=_EPSILON)
         epsilons.append(max_diff)
-    
+
+        print 'Adj', pop_adj
+        print max_diff
+        
+    if not epsilons: return np.nan  
     return max(epsilons)
        
 #-----------------------------------------------------------
@@ -162,11 +207,12 @@ plot_on = False
 
 run = 1
 
-#z4 = 50
-#s_range = range(25,100,2)
 
-z4 = 50
-s_range = range(49,52)
+z4 = 200
+s_range = range(100,301,10)
+
+#z4 = 5
+#s_range = range(5,6)
 
 epsilon = np.zeros((len(s_range),len(s_range)))
 save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
@@ -174,17 +220,25 @@ save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
 # loop for varying populations
 for i in range(len(s_range)):
     z1 = s_range[i]
-    for j in range(len(s_range)):
+    for j in range(i,len(s_range)):
         z2 = s_range[j]
+        
         pop = np.array([z1, z2, z4])
-        if pop[0]<1 or pop[1]<0 or pop[2]<0: print "Species cannot be 0"
+
+        if pop[0]<1 or pop[1]<1 or pop[2]<1: print "Species cannot be 0"
         
         print "Solving population (", i*len(s_range)+j, '/', len(s_range)**2,'): ', pop
         p = get_stationary_distr(pop[0], pop[1], pop[2], a1, a2, b1, b2)
+        if p is None: 
+            epsilon[i,j] = np.nan
+            epsilon[j,i] = np.nan
+            continue
+            
         p_obs = BuildObservableDistr(p)
 
         # builds all adjacent populations and gets max leakage
         epsilon[i,j] = MaxLeakage(pop, p_obs)
+        epsilon[i,j] = epsilon[j,i]
 
 pickle.dump(epsilon, open(save_epsilon, 'w'))
 print epsilon
