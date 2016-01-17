@@ -3,7 +3,7 @@ from sympy import Symbol
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-
+import itertools
 
 a1 = 1.0
 a2 = 1.0
@@ -14,6 +14,10 @@ z1 = 5
 z2 = 6
 z4 = 8
 
+_EPSILON = 1e-5
+
+#-----------------------------------------------------------
+# Define functions
 
 def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
     x3 = Symbol('x3', real=True, nonnegative=True)
@@ -23,7 +27,7 @@ def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
         ],
         dict=True)
 
-    print solutions
+    #print solutions
     
     cnt = 0
     for s in solutions: 
@@ -44,7 +48,7 @@ def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
         
 def get_stationary_distr(z1, z2, z4, a1, a2, b1, b2):
     sol = get_stationary_c(float(z1), float(z2), float(z4), a1, a2, b1, b2)    
-    print sol
+    #print sol
     
     prob = dict()
     
@@ -104,16 +108,70 @@ def plot_distr(prob, species_name=('a', 'b', 'c', 'd', 'e')):
         plt.ylabel('Probability')
     plt.tight_layout()
     #return fig, ax
+ 
+# Compares two distributions computed by BuildDistribution().
+def CompareDistributions(A, B, prune=_EPSILON):
+    all_values = []
+    for k, v in A.iteritems():
+        if k in B and (v > prune or B[k] > prune):
+            all_values.append(np.abs(np.log(A[k]) - np.log(B[k])))
+        elif k not in B and v > prune:
+            all_values.append(float('inf'))
+        # Ignore when one is larger and the other one is smaller or when both are smaller.
+    for k, v in B.iteritems():
+        if k not in A and v > prune:
+            all_values.append(float('inf'))
+    return max(all_values)
+
+
+def choose_iter(elements, length):
+    for i in xrange(len(elements)):
+        if length == 1:
+            yield (elements[i],)
+        else:
+            for next in choose_iter(elements[i+1:len(elements)], length-1):
+                yield (elements[i],) + next
+def choose(l, k):
+    return list(choose_iter(l, k))
+    
+#-----------------------------------------------------------
+# Main
+plot_on = False
     
 p = get_stationary_distr(z1, z2, z4, a1, a2, b1, b2)
-plot_distr(p)
-plt.show()
+
+if plot_on: plot_distr(p), plt.show()
 
 # loop for varying populations
 # loop for all adjacent databases for a given population
-#CompareDistributions(A, B, prune=_EPSILON):
+ind = [0, 1, 2] # z1, z2, z4
+base = np.array([0, 0, 0])
+pop = np.array([z1, z2, z4])
+# no species can be 0
+# CHECK
+
+# number of epsilon values: number of permutations
+epsilons = []#np.zeros(num_species * (num_species-1))
+
+for change_ind in itertools.permutations(ind, 2): # first: +1, second: -1
+    bt = base.copy()
+    bt[change_ind[0]] += 1
+    bt[change_ind[1]] -= 1
+    # adjacent population
+    pop_adj = pop + bt
+    # check if any negative
+    print pop_adj
     
-print p
+    p = get_stationary_distr(z1, z2, z4, a1, a2, b1, b2)
+    p_adj = get_stationary_distr(pop_adj[0], pop_adj[1], pop_adj[2], a1, a2, b1, b2)
+    
+    max_diff = CompareDistributions(p, p_adj, prune=_EPSILON)
+    max_diff = CompareDistributions(p, p, prune=_EPSILON)
+    print max_diff
+    
+    epsilons.append(max_diff)
+    
+print epsilons
 
 
 
