@@ -206,16 +206,16 @@ plot_on = False
 #if plot_on: plot_distr(p_obs, ('a', 'b', 'c')), plt.show() 
 
 
-run = 3
-sim = 'RATES'
+run = 4
+sim = 'RATES' #sim = {'RATES', 'SPECIES'}
 
 z1 = 220
 z2 = 220
 z4 = 200
 
 s_range = range(100,301,10)
-#r_range = np.arange(0.1, 2.0, 0.1)
-r_range = np.arange(0.1, 0.3, 0.1)
+r_range = np.arange(0.1, 2.0, 0.1)
+#r_range = np.arange(0.1, 0.3, 0.1)
 
 
 if sim=='RATES':
@@ -239,8 +239,7 @@ for i in range(num_pars):
     elif sim=='SPECIES':
         z1 = s_range[i]
         range_pars = range(i,num_pars) 
-    
-       
+ 
     for j in range_pars:
         if sim=='RATES':
             b1 = r_range[j]
