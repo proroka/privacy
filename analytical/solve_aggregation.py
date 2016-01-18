@@ -207,48 +207,65 @@ plot_on = False
 
 
 run = 3
+sim = 'RATES'
 
 z1 = 220
 z2 = 220
 z4 = 200
 
 s_range = range(100,301,10)
-r_range = np.arange(0.1, 2.0, 0.1)
+#r_range = np.arange(0.1, 2.0, 0.1)
+r_range = np.arange(0.1, 0.3, 0.1)
 
-epsilon = np.zeros((len(s_range),len(s_range)))
-params = {'z4': z4, 's_range': s_range}
+
+if sim=='RATES':
+    num_pars = len(r_range)
+elif sim=='SPECIES':
+    num_pars = len(s_range)
+
+epsilon = np.zeros((num_pars, num_pars))
+params = {'z1': z1,'z2': z2, 'z4': z4, 's_range': s_range, 'r_range': r_range, 'sim': sim}
 
 save_params = 'data/params_run' + str(run) + '.p'
 save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
 
-# loop for varying species sizes
-#for i in range(len(s_range)):
-#    z1 = s_range[i]
-#    for j in range(i,len(s_range)):
-#        z2 = s_range[j]
 
-# loop for varying propensity rates
-for i in range(len(r_range)):
-    a1 = r_range[i]
-    a2 = r_range[i]
+# loop for varying parameters
+for i in range(num_pars):
+    if sim=='RATES':
+        a1 = r_range[i]
+        a2 = r_range[i]
+        range_pars = range(num_pars) 
+    elif sim=='SPECIES':
+        z1 = s_range[i]
+        range_pars = range(i,num_pars) 
     
-    for j in range(i,len(r_range)):
-        b1 = r_range[j]
-        b2 = r_range[j]  
+       
+    for j in range_pars:
+        if sim=='RATES':
+            b1 = r_range[j]
+            b2 = r_range[j]
+        elif sim=='SPECIES':
+            z2 = s_range[j] 
         
         pop = np.array([z1, z2, z4])
         if pop[0]<1 or pop[1]<1 or pop[2]<1: print "Species cannot be 0"
-        print "Solving population (", i*len(s_range)+j, '/', len(s_range)**2,'): ', pop
+        if sim=='SPECIES':
+            print "Solving population (", i*num_pars+j, '/', num_pars**2,'): ', pop
+        elif sim=='RATES':
+            print "Solving for rates (", i*num_pars+j, '/', num_pars**2,'): ', a1, a2, b1, b2
         p = get_stationary_distr(pop[0], pop[1], pop[2], a1, a2, b1, b2)
         if p is None: 
             epsilon[i,j] = np.nan
-            epsilon[j,i] = np.nan
+            if sim=='SPECIES':
+                epsilon[j,i] = np.nan
             continue
             
         p_obs = BuildObservableDistr(p)
         # builds all adjacent populations and gets max leakage
         epsilon[i,j] = MaxLeakage(pop, p_obs)
-        epsilon[j,i] = epsilon[i,j]
+        if sim=='SPECIES':
+            epsilon[j,i] = epsilon[i,j]
         
 pickle.dump(epsilon, open(save_epsilon, 'w'))
 pickle.dump(params, open(save_params, 'w'))
