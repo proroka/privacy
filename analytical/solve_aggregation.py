@@ -229,10 +229,13 @@ save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
 
 # loop for varying propensity rates
 for i in range(len(r_range)):
-    a1, a2 = r_range[i]
+    a1 = r_range[i]
+    a2 = r_range[i]
+    
     for j in range(i,len(r_range)):
-        b1, b2 = r_range[j]
-                
+        b1 = r_range[j]
+        b2 = r_range[j]  
+        
         pop = np.array([z1, z2, z4])
         if pop[0]<1 or pop[1]<1 or pop[2]<1: print "Species cannot be 0"
         print "Solving population (", i*len(s_range)+j, '/', len(s_range)**2,'): ', pop
