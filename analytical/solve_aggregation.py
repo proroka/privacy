@@ -195,6 +195,7 @@ def MaxLeakage(pop, p_obs):
     if not epsilons: return np.nan  
     return max(epsilons)
        
+              
 #-----------------------------------------------------------
 # Main
 plot_on = False
@@ -205,28 +206,35 @@ plot_on = False
 #if plot_on: plot_distr(p_obs, ('a', 'b', 'c')), plt.show() 
 
 
-run = 1
+run = 3
 
-
+z1 = 220
+z2 = 220
 z4 = 200
-s_range = range(100,301,10)
 
-#z4 = 5
-#s_range = range(5,6)
+s_range = range(100,301,10)
+r_range = np.arange(0.1, 2.0, 0.1)
 
 epsilon = np.zeros((len(s_range),len(s_range)))
+params = {'z4': z4, 's_range': s_range}
+
+save_params = 'data/params_run' + str(run) + '.p'
 save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
 
-# loop for varying populations
-for i in range(len(s_range)):
-    z1 = s_range[i]
-    for j in range(i,len(s_range)):
-        z2 = s_range[j]
-        
-        pop = np.array([z1, z2, z4])
+# loop for varying species sizes
+#for i in range(len(s_range)):
+#    z1 = s_range[i]
+#    for j in range(i,len(s_range)):
+#        z2 = s_range[j]
 
+# loop for varying propensity rates
+for i in range(len(r_range)):
+    a1, a2 = r_range[i]
+    for j in range(i,len(r_range)):
+        b1, b2 = r_range[j]
+                
+        pop = np.array([z1, z2, z4])
         if pop[0]<1 or pop[1]<1 or pop[2]<1: print "Species cannot be 0"
-        
         print "Solving population (", i*len(s_range)+j, '/', len(s_range)**2,'): ', pop
         p = get_stationary_distr(pop[0], pop[1], pop[2], a1, a2, b1, b2)
         if p is None: 
@@ -235,12 +243,12 @@ for i in range(len(s_range)):
             continue
             
         p_obs = BuildObservableDistr(p)
-
         # builds all adjacent populations and gets max leakage
         epsilon[i,j] = MaxLeakage(pop, p_obs)
-        epsilon[i,j] = epsilon[j,i]
-
+        epsilon[j,i] = epsilon[i,j]
+        
 pickle.dump(epsilon, open(save_epsilon, 'w'))
+pickle.dump(params, open(save_params, 'w'))
 print epsilon
 
 
