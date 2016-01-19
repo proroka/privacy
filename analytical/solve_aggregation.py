@@ -17,39 +17,6 @@ _EPSILON = 1e-5
 #-----------------------------------------------------------
 # Define functions
 
-# def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
-#     #x3 = Symbol('x3', real=True, nonnegative=True)
-#     x3 = Symbol('x3')
-#     solutions = solve(
-#         [
-#             a1*(z1-x3-z4+(b2*z4 / (b1*x3 + b2)))*(z2-x3-z4+(b2*z4 / (b1*x3 + b2))) - a2*x3
-#         ],
-#         dict=True)
-#
-#     print solutions
-#
-#     cnt = 0
-#     for s in solutions:
-#         _x3 = float(s[x3])
-#         x4 = b2 * z4 / (b1 * _x3 + b2)
-#         x5 = z4 - x4
-#         x1 = z1 - _x3 - x5
-#         x2 = z2 - _x3 - x5
-#
-#         print x1
-#         print x2
-#         print x4
-#         print x5
-#
-#         if (x1>=0. and x2>=0. and x4>=0. and x5>=0.):
-#             cnt += 1
-#             sol = [x1, x2, _x3, x4, x5]
-#
-#     #print sol
-#     if cnt == 1:
-#         return sol
-#     return None
-
 def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
     x3 = Symbol('x3')
     solutions = solve(
@@ -206,7 +173,7 @@ plot_on = False
 #if plot_on: plot_distr(p_obs, ('a', 'b', 'c')), plt.show() 
 
 
-run = 4
+run = 5
 sim = 'RATES' #sim = {'RATES', 'SPECIES'}
 
 z1 = 220
