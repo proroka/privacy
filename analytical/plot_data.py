@@ -6,7 +6,8 @@ import pickle
 import matplotlib.colors as colors
 
 
-run = 4
+run = 5
+
 save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
 save_params = 'data/params_run' + str(run) + '.p'
 

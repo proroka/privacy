@@ -7,11 +7,6 @@ import itertools
 import pickle
 
 
-a1 = 1.0
-a2 = 1.0
-b1 = 1.0
-b2 = 1.0
-
 _EPSILON = 1e-5
 
 #-----------------------------------------------------------
@@ -172,13 +167,19 @@ plot_on = False
 #if plot_on: plot_distr(p), plt.show() 
 #if plot_on: plot_distr(p_obs, ('a', 'b', 'c')), plt.show() 
 
-
-run = 5
-sim = 'RATES' #sim = {'RATES', 'SPECIES'}
-
+# default values
+# species
 z1 = 220
 z2 = 220
 z4 = 200
+# rates
+a1 = 1.0
+a2 = 1.0
+b1 = 1.0
+b2 = 1.0
+
+run = 5
+sim = 'RATES' #sim = {'RATES', 'SPECIES'}
 
 s_range = range(100,301,10)
 r_range = np.arange(0.1, 2.0, 0.1)
@@ -200,7 +201,7 @@ save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
 # loop for varying parameters
 for i in range(num_pars):
     if sim=='RATES':
-        a1 = r_range[i]
+        #a1 = r_range[i]
         a2 = r_range[i]
         range_pars = range(num_pars) 
     elif sim=='SPECIES':
@@ -209,7 +210,7 @@ for i in range(num_pars):
  
     for j in range_pars:
         if sim=='RATES':
-            b1 = r_range[j]
+            #b1 = r_range[j]
             b2 = r_range[j]
         elif sim=='SPECIES':
             z2 = s_range[j] 
