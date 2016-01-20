@@ -1,0 +1,72 @@
+
+#-----------------------------------------------------
+run 2
+
+
+#-----------------------------------------------------
+run 4
+sim = 'RATES' #sim = {'RATES', 'SPECIES'}
+
+s_range = range(100,301,10)
+r_range = np.arange(0.1, 2.0, 0.1)
+
+
+
+#-----------------------------------------------------
+
+# default values
+# species
+z1 = 220
+z2 = 220
+z4 = 200
+# rates
+a1 = 1.0
+a2 = 1.0
+b1 = 1.0
+b2 = 1.0
+
+run = 5
+sim = 'RATES' #sim = {'RATES', 'SPECIES'}
+
+s_range = range(100,301,10)
+r_range = np.arange(0.1, 2.0, 0.1)
+#r_range = np.arange(0.1, 0.3, 0.1)
+
+
+
+varying a2 b2
+
+#-----------------------------------------------------
+# default values
+# species
+z1 = 220
+z2 = 220
+z4 = 200
+# rates
+a1 = 1.0
+a2 = 1.0
+b1 = 1.0
+b2 = 1.0
+
+run = 6
+sim = 'RATES' #sim = {'RATES', 'SPECIES'}
+
+s_range = range(100,301,10)
+r_range = np.arange(0.1, 2.0, 0.1)
+#r_range = np.arange(0.1, 0.3, 0.1)
+
+varying a1 b1
+
+#-----------------------------------------------------
+
+run 7
+varying a1 b2
+
+
+#-----------------------------------------------------
+
+run 8
+varying a2 b1
+
+
+

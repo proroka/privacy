@@ -178,7 +178,7 @@ a2 = 1.0
 b1 = 1.0
 b2 = 1.0
 
-run = 5
+run = 8
 sim = 'RATES' #sim = {'RATES', 'SPECIES'}
 
 s_range = range(100,301,10)
@@ -210,8 +210,8 @@ for i in range(num_pars):
  
     for j in range_pars:
         if sim=='RATES':
-            #b1 = r_range[j]
-            b2 = r_range[j]
+            b1 = r_range[j]
+            #b2 = r_range[j]
         elif sim=='SPECIES':
             z2 = s_range[j] 
         
