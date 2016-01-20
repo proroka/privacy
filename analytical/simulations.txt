@@ -2,6 +2,14 @@
 #-----------------------------------------------------
 run 2
 
+varying species population
+# rates
+a1 = 1.0
+a2 = 1.0
+b1 = 1.0
+b2 = 1.0
+
+s_range = range(100,301,10)
 
 #-----------------------------------------------------
 run 4
@@ -30,8 +38,6 @@ sim = 'RATES' #sim = {'RATES', 'SPECIES'}
 
 s_range = range(100,301,10)
 r_range = np.arange(0.1, 2.0, 0.1)
-#r_range = np.arange(0.1, 0.3, 0.1)
-
 
 
 varying a2 b2
