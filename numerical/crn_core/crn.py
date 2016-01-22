@@ -279,7 +279,7 @@ def BuildDistributions(output_from_run):
 
 # Compares two distributions computed by BuildDistribution().
 def CompareDistributions(A, B, smooth=_NU):
-1e-5ll_values = []
+   all_values = []
    for k, v in A.iteritems():
        if k in B:
            all_values.append(np.abs(np.log(A[k] + smooth) - np.log(B[k] + smooth)))
