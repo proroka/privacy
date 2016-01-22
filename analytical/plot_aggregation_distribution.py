@@ -10,9 +10,9 @@ from solve_aggregation import *
 
 # default values
 # species
-z1 = 220
-z2 = 220
-z4 = 200
+z1 = 120
+z2 = 130
+z4 = 100
 # rates
 a1 = 1.0
 a2 = 1.0

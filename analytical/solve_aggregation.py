@@ -85,6 +85,8 @@ def get_stationary_distr(z1, z2, z4, a1, a2, b1, b2):
 
 
 def plot_distr(prob, species_name=('a', 'b', 'c', 'd', 'e')):
+    subplots = False
+    
     def _GetColors(n):
        cm = plt.get_cmap('gist_rainbow')
        return [cm(float(i) / float(n)) for i in range(n)]
@@ -96,19 +98,36 @@ def plot_distr(prob, species_name=('a', 'b', 'c', 'd', 'e')):
            max_population = max(s, max_population)
            min_population = min(s, min_population)
     colors = _GetColors(len(species_name))
-    fig = plt.figure(figsize=(20,5))
-    for i in xrange(len(species_name)):
-        plt.subplot(1,len(species_name),i+1)
-        values = np.zeros((max_population - min_population + 1, ))
-        for k, v in prob.iteritems():
-            values[k[i] - min_population] += v
-        plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
-               label=species_name[i], color=colors[i], alpha=0.3)
+    
+    
+    if subplots:
+        fig = plt.figure(figsize=(16,5))
+        for i in xrange(len(species_name)):
+            plt.subplot(1,len(species_name),i+1)
+            values = np.zeros((max_population - min_population + 1, ))
+            for k, v in prob.iteritems():
+                values[k[i] - min_population] += v
+            plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
+                   label=species_name[i], color=colors[i], alpha=0.3)
+            plt.legend(loc='upper right', shadow=False, fontsize='x-large')
+            plt.xlabel('Population')
+            plt.ylabel('Probability')
+    
+            plt.gca().set_xlim([0, 250])
+        
+    else:
+        fig = plt.figure(figsize=(10,5))
+        for i in xrange(len(species_name)):
+            values = np.zeros((max_population - min_population + 1, ))
+            for k, v in prob.iteritems():
+                values[k[i] - min_population] += v
+            plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
+                   label=species_name[i], color=colors[i], alpha=0.3)
         plt.legend(loc='upper right', shadow=False, fontsize='x-large')
         plt.xlabel('Population')
         plt.ylabel('Probability')
-
-        plt.gca().set_xlim([0, 250])
+        plt.gca().set_xlim([0, 110])
+            
     plt.tight_layout()
     return fig
 
