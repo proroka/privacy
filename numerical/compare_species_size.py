@@ -49,7 +49,7 @@ def RunSystem(populations, args):
 
 def GetAllEpsilons(args):
     # 1 species is fixed at args.nrobots, while the others vary in numbers.
-    populations_to_test = itertools.product(xrange(1, args.nrobots + 1), repeat=args.nspecies - 1)
+    populations_to_test = itertools.product(xrange(1, args.nrobots * 2 + 1), repeat=args.nspecies - 1)
     populations_to_test = [np.array((args.nrobots,) + p).astype(int) for p in populations_to_test]
     # Alternative databases. For each species, we can remove a robots or switch its species.
     alternative_population_offsets = []
