@@ -93,7 +93,7 @@ def GetAllEpsilons(args):
             else:
                 alternative_distribution = RunSystem(alternative_populations + base_populations, args.alpha, parameter, args)
             # Compute difference.
-            min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution, prune=1e-3)
+            min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution)
             # Store difference.
             max_min_epsilon = max(max_min_epsilon, min_epsilon)
         # Due to symmetry all permutations of the paramters (except the first element) should be equivalent.

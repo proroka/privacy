@@ -70,7 +70,7 @@ def GetAllEpsilons(args):
         alternative_distribution = RunSystem(alternative_populations + base_populations, taus, args)
         for i, tau in enumerate(taus):
             # Compute difference.
-            min_epsilon = crn_core.CompareDistributions(base_distribution[i], alternative_distribution[i], prune=1e-3)
+            min_epsilon = crn_core.CompareDistributions(base_distribution[i], alternative_distribution[i])
             # Store difference.
             max_min_epsilons[i] = max(max_min_epsilons[i], min_epsilon)
     for i, tau in enumerate(taus):

@@ -95,7 +95,7 @@ def GetAllEpsilons(args):
             if combination in min_epsilons_cache:
                 min_epsilon = min_epsilons_cache[combination]
             else:
-                min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution, prune=1e-3)
+                min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution)
                 min_epsilons_cache[combination] = min_epsilon
             # Store difference.
             max_min_epsilon = max(max_min_epsilon, min_epsilon)
