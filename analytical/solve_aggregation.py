@@ -7,7 +7,7 @@ import itertools
 import pickle
 
 
-_EPSILON = 1e-5
+_NU = 1e-5
 
 #-----------------------------------------------------------
 # Define functions
@@ -28,7 +28,7 @@ def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
         re, im = _x3.as_real_imag()
         if float(im) < 1e-6:
             x3_value = float(re)
-    
+
         if x3_value is None or x3_value < 0.:
             continue
 
@@ -45,14 +45,14 @@ def get_stationary_c(z1, z2, z4, a1, a2, b1, b2):
         return sol
     print 'Oops. Number of solutions:', cnt
     return None
-        
-        
+
+
 def get_stationary_distr(z1, z2, z4, a1, a2, b1, b2):
-    sol = get_stationary_c(float(z1), float(z2), float(z4), a1, a2, b1, b2)    
+    sol = get_stationary_c(float(z1), float(z2), float(z4), a1, a2, b1, b2)
     if sol is None: return None
-    
+
     prob = dict()
-    
+
     # compute all possible values for x_i according to rule:
     # x3 == [0, min(z1, z2)]
     # x4 == [0, z4]
@@ -65,24 +65,24 @@ def get_stationary_distr(z1, z2, z4, a1, a2, b1, b2):
             # need to check that all xi are positive, else skip this loop
             if x1<0 or x2<0 or x5<0: continue
             currx = [x1, x2, x3, x4, x5]
-            
+
             # compute formula for stationary distribution f(c_i, x_i):
             p = 1
             for ci, xi in zip(sol, currx):
-                #p *= math.pow(ci,xi) / math.factorial(xi) 
+                #p *= math.pow(ci,xi) / math.factorial(xi)
                 for i in range(1, xi + 1):
                     p *= ci / float(i)
-                    
+
             # return dict with key(x_i values) value(eval pi(x_i values))
             prob[(x1, x2, x3, x4, x5)] = p
             sum_p += p
-    
+
     for k in prob:
         prob[k] /= sum_p
-                   
-    return prob 
- 
- 
+
+    return prob
+
+
 
 def plot_distr(prob, species_name=('a', 'b', 'c', 'd', 'e')):
     def _GetColors(n):
@@ -107,25 +107,25 @@ def plot_distr(prob, species_name=('a', 'b', 'c', 'd', 'e')):
         plt.legend(loc='upper right', shadow=False, fontsize='x-large')
         plt.xlabel('Population')
         plt.ylabel('Probability')
-    
+
         plt.gca().set_xlim([0, 250])
     plt.tight_layout()
     return fig
- 
+
 # Compares two distributions computed by BuildDistribution().
-def CompareDistributions(A, B, prune=_EPSILON):
+def CompareDistributions(A, B, smooth=_NU):
    all_values = []
    for k, v in A.iteritems():
        if k in B:
-           all_values.append(np.abs(np.log(A[k] + prune) - np.log(B[k] + prune)))
+           all_values.append(np.abs(np.log(A[k] + smooth) - np.log(B[k] + smooth)))
        elif k not in B:
-           all_values.append(np.abs(np.log(A[k] + prune) - np.log(prune)))
+           all_values.append(np.abs(np.log(A[k] + smooth) - np.log(smooth)))
        # Ignore when one is larger and the other one is smaller or when both are smaller.
    for k, v in B.iteritems():
        if k not in A:
-           all_values.append(np.abs(np.log(prune) - np.log(B[k] + prune)))
+           all_values.append(np.abs(np.log(smooth) - np.log(B[k] + smooth)))
    return max(all_values)
-    
+
 def BuildObservableDistr(p):
     new_p = {}
     for k, v in p.iteritems():
@@ -134,7 +134,7 @@ def BuildObservableDistr(p):
             new_p[new_k] = 0.
         new_p[new_k] += v
     return new_p
-    
+
 def MaxLeakage(pop, p_obs):
     # number of epsilon values
     epsilons = []
@@ -145,26 +145,26 @@ def MaxLeakage(pop, p_obs):
         bt[change_ind[1]] = -1
         # adjacent population
         pop_adj = pop + bt
-        
+
         p_adj = get_stationary_distr(pop_adj[0], pop_adj[1], pop_adj[2], a1, a2, b1, b2)
         if p_adj is None: continue
         p_adj_obs = BuildObservableDistr(p_adj)
-        
-        max_diff = CompareDistributions(p_obs, p_adj_obs, prune=_EPSILON)
+
+        max_diff = CompareDistributions(p_obs, p_adj_obs, prune=_NU)
         epsilons.append(max_diff)
 
         print 'Adj', pop_adj
         print max_diff
-        
-    if not epsilons: return np.nan  
+
+    if not epsilons: return np.nan
     return max(epsilons)
-       
-              
+
+
 #-----------------------------------------------------------
 # Main
 
 if __name__ == '__main__':
-    
+
     # default values
     # species
     z1 = 220
@@ -175,44 +175,44 @@ if __name__ == '__main__':
     a2 = 1.0
     b1 = 1.0
     b2 = 1.0
-    
+
     run = 8
     sim = 'RATES' #sim = {'RATES', 'SPECIES'}
-    
+
     s_range = range(100,301,10)
     r_range = np.arange(0.1, 2.0, 0.1)
     #r_range = np.arange(0.1, 0.3, 0.1)
-    
-    
+
+
     if sim=='RATES':
         num_pars = len(r_range)
     elif sim=='SPECIES':
         num_pars = len(s_range)
-    
+
     epsilon = np.zeros((num_pars, num_pars))
     params = {'z1': z1,'z2': z2, 'z4': z4, 's_range': s_range, 'r_range': r_range, 'sim': sim}
-    
+
     save_params = 'data/params_run' + str(run) + '.p'
     save_epsilon = 'data/epsilon_data_run' + str(run) + '.p'
-    
-    
+
+
     # loop for varying parameters
     for i in range(num_pars):
         if sim=='RATES':
             #a1 = r_range[i]
             a2 = r_range[i]
-            range_pars = range(num_pars) 
+            range_pars = range(num_pars)
         elif sim=='SPECIES':
             z1 = s_range[i]
-            range_pars = range(i,num_pars) 
-     
+            range_pars = range(i,num_pars)
+
         for j in range_pars:
             if sim=='RATES':
                 b1 = r_range[j]
                 #b2 = r_range[j]
             elif sim=='SPECIES':
-                z2 = s_range[j] 
-            
+                z2 = s_range[j]
+
             pop = np.array([z1, z2, z4])
             if pop[0]<1 or pop[1]<1 or pop[2]<1: print "Species cannot be 0"
             if sim=='SPECIES':
@@ -220,18 +220,18 @@ if __name__ == '__main__':
             elif sim=='RATES':
                 print "Solving for rates (", i*num_pars+j, '/', num_pars**2,'): ', a1, a2, b1, b2
             p = get_stationary_distr(pop[0], pop[1], pop[2], a1, a2, b1, b2)
-            if p is None: 
+            if p is None:
                 epsilon[i,j] = np.nan
                 if sim=='SPECIES':
                     epsilon[j,i] = np.nan
                 continue
-                
+
             p_obs = BuildObservableDistr(p)
             # builds all adjacent populations and gets max leakage
             epsilon[i,j] = MaxLeakage(pop, p_obs)
             if sim=='SPECIES':
                 epsilon[j,i] = epsilon[i,j]
-            
+
     pickle.dump(epsilon, open(save_epsilon, 'w'))
     pickle.dump(params, open(save_params, 'w'))
     print epsilon

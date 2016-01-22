@@ -28,7 +28,7 @@ _STOCHKIT_TRAJECTORIES_OUTPUT = 'stochkit_output/trajectories/trajectory%d.txt'
 
 # Probability value below which distribution difference is not computed due
 # to numerical imprecision.
-_EPSILON = 0.05
+_NU = 1e-5
 
 # Defines a complex.
 class Complex(object):
@@ -278,18 +278,18 @@ def BuildDistributions(output_from_run):
 
 
 # Compares two distributions computed by BuildDistribution().
-def CompareDistributions(A, B, prune=_EPSILON):
-    all_values = []
-    for k, v in A.iteritems():
-        if k in B and (v > prune or B[k] > prune):
-            all_values.append(np.abs(np.log(A[k]) - np.log(B[k])))
-        elif k not in B and v > prune:
-            all_values.append(float('inf'))
-        # Ignore when one is larger and the other one is smaller or when both are smaller.
-    for k, v in B.iteritems():
-        if k not in A and v > prune:
-            all_values.append(float('inf'))
-    return max(all_values)
+def CompareDistributions(A, B, smooth=_NU):
+1e-5ll_values = []
+   for k, v in A.iteritems():
+       if k in B:
+           all_values.append(np.abs(np.log(A[k] + smooth) - np.log(B[k] + smooth)))
+       elif k not in B:
+           all_values.append(np.abs(np.log(A[k] + smooth) - np.log(smooth)))
+       # Ignore when one is larger and the other one is smaller or when both are smaller.
+   for k, v in B.iteritems():
+       if k not in A:
+           all_values.append(np.abs(np.log(smooth) - np.log(B[k] + smooth)))
+   return max(all_values)
 
 
 if __name__ == '__main__':
