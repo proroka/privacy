@@ -50,7 +50,7 @@ def RunSystem(populations, args):
 
 def GetAllEpsilons(args):
     # 1 species is fixed at args.nrobots, while the others vary in numbers.
-    populations_to_test = itertools.product(xrange(1, args.nrobots * 2 + 1), repeat=args.nspecies - 1)
+    populations_to_test = itertools.product(xrange(1, args.nrobots * 1 + 1), repeat=args.nspecies - 1)
     populations_to_test = [np.array((args.nrobots,) + p).astype(int) for p in populations_to_test]
     # Alternative databases. For each species, we can remove a robots or switch its species.
     alternative_population_offsets = []
@@ -115,11 +115,11 @@ def run(args):
             pickle.dump(min_epsilons, open(args.save_epsilons, 'w'))
     # Plot it!
     if args.nspecies == 2:
-        values = np.empty(args.nrobots * 2)
+        values = np.empty(args.nrobots * 1)
         for k, v in min_epsilons.iteritems():
             values[k[1] - 1] = v
         fig = plt.figure()
-        plt.plot(np.arange(1, args.nrobots * 2 + 1), values, linewidth=2, color='b', label='\epsilon')
+        plt.plot(np.arange(1, args.nrobots * 1 + 1), values, linewidth=2, color='b', label='\epsilon')
         plt.title('N_1 = %d' % args.nrobots)
         plt.xlabel('N_2 (population of the second species)')
         plt.ylabel('Leakage')
@@ -137,14 +137,14 @@ def run(args):
             z.append(v)
         datapoints = np.array((x, y)).T
         z = np.array(z)
-        XI, YI = np.meshgrid(np.arange(1, args.nrobots * 2 + 1), np.arange(1, args.nrobots * 2 + 1))
+        XI, YI = np.meshgrid(np.arange(1, args.nrobots * 1 + 1), np.arange(1, args.nrobots * 1 + 1))
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
-        clim = (2.,11.)
-        norm = colors.PowerNorm(gamma=2.5)
+        clim = (0.,10.)
+        norm = colors.PowerNorm(gamma=1.)
         cmap = plt.get_cmap('RdPu')
         plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
                    clim=clim, norm=norm,
-                   extent=[0.5, args.nrobots * 2 + 0.5, 0.5, args.nrobots * 2 + 0.5])
+                   extent=[0.5, args.nrobots * 1 + 0.5, 0.5, args.nrobots * 1 + 0.5])
         plt.colorbar()
         plt.title('N_1 = %d' % args.nrobots)
         plt.xlabel('N_2 (population of the second species)')

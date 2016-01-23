@@ -1,6 +1,7 @@
 import argparse
 import itertools
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import numpy as np
 import pickle
 from scipy import interpolate
@@ -76,7 +77,6 @@ def GetAllEpsilons(args):
         parameters = np.linspace(0., args.beta * 2., args.npoints + 1).tolist()[1:]  # Ignore zero.
         default = args.beta
     parameters = [(default,) + x for x in itertools.combinations_with_replacement(parameters, args.nspecies - 1)]
-    # betas = [np.linspace(0., args.beta * 2.).tolist()] * (args.nspecies - 1)
     # Loop through all alpha parameters.
     min_epsilons = {}
     for parameter in parameters:
@@ -93,10 +93,10 @@ def GetAllEpsilons(args):
             else:
                 alternative_distribution = RunSystem(alternative_populations + base_populations, args.alpha, parameter, args)
             # Compute difference.
-            min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution)
+            min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution, smooth=1e-8)
             # Store difference.
             max_min_epsilon = max(max_min_epsilon, min_epsilon)
-        # Due to symmetry all permutations of the paramters (except the first element) should be equivalent.
+        # Due to symmetry all permutations of the parameters (except the first element) should be equivalent.
         for params in ((parameter[0],) + p for p in itertools.permutations(parameter[1:])):
             min_epsilons[params] = max_min_epsilon
     return min_epsilons
@@ -120,7 +120,7 @@ def run(args):
             args.nrobots, args.sweep_type, args.alpha if args.sweep_type == 'alpha' else args.beta,
             'beta' if args.sweep_type == 'alpha' else 'alpha', args.beta if args.sweep_type == 'alpha' else args.alpha))
         plt.xlabel('%s_2' % args.sweep_type)
-        plt.ylabel('Minimum acheivable \epsilon')
+        plt.ylabel('Leakage')
         plt.show()
     elif args.nspecies == 3:
         fig = plt.figure(figsize=(5, 4))
@@ -142,8 +142,11 @@ def run(args):
         XI, YI = np.meshgrid(parameters, parameters)
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
         dx = (np.max(parameters) - np.min(parameters)) / (2. * float(len(parameters) - 1))
-        clim = (2.,11.)
-        norm = colors.PowerNorm(gamma=2.5)
+        if args.sweep_type == 'alpha':
+            clim = (0., 1.)
+        else:
+            clim = None # (0., 0.3)
+        norm = colors.PowerNorm(gamma=1.)
         cmap = plt.get_cmap('RdPu')
         plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
                    clim=clim, norm=norm,
