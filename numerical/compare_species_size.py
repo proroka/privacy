@@ -1,6 +1,7 @@
 import argparse
 import itertools
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import numpy as np
 import pickle
 from scipy import interpolate
@@ -114,17 +115,17 @@ def run(args):
             pickle.dump(min_epsilons, open(args.save_epsilons, 'w'))
     # Plot it!
     if args.nspecies == 2:
-        values = np.empty(args.nrobots)
+        values = np.empty(args.nrobots * 2)
         for k, v in min_epsilons.iteritems():
             values[k[1] - 1] = v
-        plt.figure()
-        plt.plot(np.arange(1, args.nrobots + 1), values, linewidth=2, color='b', label='\epsilon')
+        fig = plt.figure()
+        plt.plot(np.arange(1, args.nrobots * 2 + 1), values, linewidth=2, color='b', label='\epsilon')
         plt.title('N_1 = %d' % args.nrobots)
         plt.xlabel('N_2 (population of the second species)')
-        plt.ylabel('Minimum acheivable \epsilon')
+        plt.ylabel('Leakage')
         plt.show()
     elif args.nspecies == 3:
-        plt.figure()
+        fig = plt.figure(figsize=(5, 4))
         x = []
         y = []
         z = []
@@ -136,10 +137,14 @@ def run(args):
             z.append(v)
         datapoints = np.array((x, y)).T
         z = np.array(z)
-        XI, YI = np.meshgrid(np.arange(1, args.nrobots + 1), np.arange(1, args.nrobots + 1))
+        XI, YI = np.meshgrid(np.arange(1, args.nrobots * 2 + 1), np.arange(1, args.nrobots * 2 + 1))
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
-        plt.imshow(ZI, cmap=plt.cm.coolwarm, interpolation='nearest', origin='lower',
-                   extent=[0.5, args.nrobots + 0.5, 0.5, args.nrobots + 0.5])
+        clim = (2.,11.)
+        norm = colors.PowerNorm(gamma=2.5)
+        cmap = plt.get_cmap('RdPu')
+        plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
+                   clim=clim, norm=norm,
+                   extent=[0.5, args.nrobots * 2 + 0.5, 0.5, args.nrobots * 2 + 0.5])
         plt.colorbar()
         plt.title('N_1 = %d' % args.nrobots)
         plt.xlabel('N_2 (population of the second species)')
@@ -147,6 +152,8 @@ def run(args):
         plt.show()
     else:
         print 'Cannot plot if --nspecies > 3'
+    if args.save_plot:
+        fig.savefig(args.save_plot)
 
 
 if __name__ == '__main__':
@@ -161,6 +168,7 @@ if __name__ == '__main__':
     parser.add_argument('--cme', action='store_true', help='If set, uses CMEPy instead of StochKit')
     parser.add_argument('--save_epsilons', metavar='FILE', type=str, action='store', help='If set, saves the min-epsilons in the specified file')
     parser.add_argument('--load_epsilons', metavar='FILE', type=str, action='store', help='If set, load the min-epsilons from the specified file')
+    parser.add_argument('--save_plot', metavar='FILE', type=str, action='store', help='If set, saves the plot in the specified file')
     parser.add_argument('--plot_first_run', action='store_true', help='If set, plots the first run')
 
     # Run.

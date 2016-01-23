@@ -123,7 +123,7 @@ def run(args):
         plt.ylabel('Minimum acheivable \epsilon')
         plt.show()
     elif args.nspecies == 3:
-        plt.figure()
+        fig = plt.figure(figsize=(5, 4))
         x = []
         y = []
         z = []
@@ -142,7 +142,11 @@ def run(args):
         XI, YI = np.meshgrid(parameters, parameters)
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
         dx = (np.max(parameters) - np.min(parameters)) / (2. * float(len(parameters) - 1))
-        plt.imshow(ZI, cmap=plt.cm.coolwarm, interpolation='nearest', origin='lower',
+        clim = (2.,11.)
+        norm = colors.PowerNorm(gamma=2.5)
+        cmap = plt.get_cmap('RdPu')
+        plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
+                   clim=clim, norm=norm,
                    extent=[np.min(parameters) - dx, np.max(parameters) + dx, np.min(parameters) - dx, np.max(parameters) + dx])
         plt.colorbar()
         plt.title('N_1 = N_2 = N_3 = %d, %s_1 = %g, %s = %g' % (
@@ -153,6 +157,8 @@ def run(args):
         plt.show()
     else:
         print 'Cannot plot if --nspecies > 3'
+    if args.save_plot:
+        fig.savefig(args.save_plot)
 
 
 if __name__ == '__main__':
@@ -169,6 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_epsilons', metavar='FILE', type=str, action='store', help='If set, saves the min-epsilons in the specified file')
     parser.add_argument('--load_epsilons', metavar='FILE', type=str, action='store', help='If set, load the min-epsilons from the specified file')
     parser.add_argument('--sweep_type', metavar='{alpha | beta}', type=str, action='store', default='alpha', help='Either "alpha" or "beta"')
+    parser.add_argument('--save_plot', metavar='FILE', type=str, action='store', help='If set, saves the plot in the specified file')
     parser.add_argument('--plot_first_run', action='store_true', help='If set, plots the first run')
 
     # Run.
