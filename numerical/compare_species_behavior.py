@@ -93,7 +93,7 @@ def GetAllEpsilons(args):
             else:
                 alternative_distribution = RunSystem(alternative_populations + base_populations, args.alpha, parameter, args)
             # Compute difference.
-            min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution, smooth=1e-8)
+            min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution, smooth=1e-3)
             # Store difference.
             max_min_epsilon = max(max_min_epsilon, min_epsilon)
         # Due to symmetry all permutations of the parameters (except the first element) should be equivalent.
@@ -143,10 +143,10 @@ def run(args):
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
         dx = (np.max(parameters) - np.min(parameters)) / (2. * float(len(parameters) - 1))
         if args.sweep_type == 'alpha':
-            clim = (0., 1.)
+            clim = None # (0., .6)
         else:
-            clim = None # (0., 0.3)
-        norm = colors.PowerNorm(gamma=1.)
+            clim = None # (0.04, 0.08)
+        norm = colors.PowerNorm(gamma=1)
         cmap = plt.get_cmap('RdPu')
         plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
                    clim=clim, norm=norm,

@@ -20,6 +20,9 @@ _DEFAULT_DURATION = 5.
 # To only show the first call to RunSystem.
 first_run = True
 
+# nrobots going from 1 to _MAX_NROBOTS_FACTOR*nrobots.
+_MAX_NROBOTS_FACTOR = 2
+
 
 def RunSystem(populations, args):
     global first_run
@@ -50,7 +53,7 @@ def RunSystem(populations, args):
 
 def GetAllEpsilons(args):
     # 1 species is fixed at args.nrobots, while the others vary in numbers.
-    populations_to_test = itertools.product(xrange(1, args.nrobots * 1 + 1), repeat=args.nspecies - 1)
+    populations_to_test = itertools.combinations_with_replacement(xrange(1, args.nrobots * _MAX_NROBOTS_FACTOR + 1), args.nspecies - 1)
     populations_to_test = [np.array((args.nrobots,) + p).astype(int) for p in populations_to_test]
     # Alternative databases. For each species, we can remove a robots or switch its species.
     alternative_population_offsets = []
@@ -67,40 +70,23 @@ def GetAllEpsilons(args):
             add_offset_array = np.zeros((args.nspecies,)).astype(int)
             add_offset_array[other_s] = 1.
             alternative_population_offsets.append(remove_offset_array + add_offset_array)
-    # Keeps track of all distributions.
     # Since the system is symmetric, we store in sorted population numbers.
     # So that we do not test both (N_1, N_2, N_3) and (N_1, N_3, N_2).
-    distributions_cache = {}
-    min_epsilons_cache = {}
     min_epsilons = {}
     for populations in populations_to_test:
-        unsorted_base_populations_tuple = tuple(populations.tolist())
-        base_populations_tuple = tuple(sorted(populations.tolist()))
-        # We might have computed this population before.
-        if base_populations_tuple in distributions_cache:
-            base_distribution = distributions_cache[base_populations_tuple]
-        else:
-            base_distribution = RunSystem(base_populations_tuple, args)
-            distributions_cache[base_populations_tuple] = base_distribution
+        print 'Analyzing population:', populations
+        base_distribution = RunSystem(populations, args)
         # Alternative database.
         max_min_epsilon = 0.
         for alternative_populations in alternative_population_offsets:
-            alternative_populations_tuple = tuple(sorted((alternative_populations + populations).tolist()))
-            if alternative_populations_tuple in distributions_cache:
-                alternative_distribution = distributions_cache[alternative_populations_tuple]
-            else:
-                alternative_distribution = RunSystem(alternative_populations_tuple, args)
-                distributions_cache[alternative_populations_tuple] = base_distribution
+            alternative_distribution = RunSystem(alternative_populations + populations, args)
             # Compute difference.
-            combination = base_populations_tuple + alternative_populations_tuple
-            if combination in min_epsilons_cache:
-                min_epsilon = min_epsilons_cache[combination]
-            else:
-                min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution)
-                min_epsilons_cache[combination] = min_epsilon
+            min_epsilon = crn_core.CompareDistributions(base_distribution, alternative_distribution)
             # Store difference.
             max_min_epsilon = max(max_min_epsilon, min_epsilon)
-        min_epsilons[unsorted_base_populations_tuple] = max_min_epsilon
+        # Due to symmetry all permutations of the parameters (except the first element) should be equivalent.
+        for pop in ((populations[0],) + p for p in itertools.permutations(populations[1:])):
+            min_epsilons[pop] = max_min_epsilon
     return min_epsilons
 
 
@@ -115,11 +101,11 @@ def run(args):
             pickle.dump(min_epsilons, open(args.save_epsilons, 'w'))
     # Plot it!
     if args.nspecies == 2:
-        values = np.empty(args.nrobots * 1)
+        values = np.empty(args.nrobots * _MAX_NROBOTS_FACTOR)
         for k, v in min_epsilons.iteritems():
             values[k[1] - 1] = v
         fig = plt.figure()
-        plt.plot(np.arange(1, args.nrobots * 1 + 1), values, linewidth=2, color='b', label='\epsilon')
+        plt.plot(np.arange(1, args.nrobots * _MAX_NROBOTS_FACTOR + 1), values, linewidth=2, color='b', label='\epsilon')
         plt.title('N_1 = %d' % args.nrobots)
         plt.xlabel('N_2 (population of the second species)')
         plt.ylabel('Leakage')
@@ -137,14 +123,14 @@ def run(args):
             z.append(v)
         datapoints = np.array((x, y)).T
         z = np.array(z)
-        XI, YI = np.meshgrid(np.arange(1, args.nrobots * 1 + 1), np.arange(1, args.nrobots * 1 + 1))
+        XI, YI = np.meshgrid(np.arange(1, args.nrobots * _MAX_NROBOTS_FACTOR + 1), np.arange(1, args.nrobots * _MAX_NROBOTS_FACTOR + 1))
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
         clim = (0.,10.)
         norm = colors.PowerNorm(gamma=1.)
         cmap = plt.get_cmap('RdPu')
         plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
                    clim=clim, norm=norm,
-                   extent=[0.5, args.nrobots * 1 + 0.5, 0.5, args.nrobots * 1 + 0.5])
+                   extent=[0.5, args.nrobots * _MAX_NROBOTS_FACTOR + 0.5, 0.5, args.nrobots * _MAX_NROBOTS_FACTOR + 0.5])
         plt.colorbar()
         plt.title('N_1 = %d' % args.nrobots)
         plt.xlabel('N_2 (population of the second species)')
