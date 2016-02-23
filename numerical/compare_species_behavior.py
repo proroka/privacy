@@ -138,16 +138,21 @@ def run(args):
             z.append(v)
         datapoints = np.array((x, y)).T
         parameters = np.array(sorted(list(parameters)))
+        # interpolate parameter range for refined image
+        intpar = np.linspace(np.min(parameters),np.max(parameters),len(parameters)*2,endpoint=True)
+        
         z = np.array(z)
-        XI, YI = np.meshgrid(parameters, parameters)
+        #XI, YI = np.meshgrid(parameters, parameters)
+        XI, YI = np.meshgrid(intpar, intpar)
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
         dx = (np.max(parameters) - np.min(parameters)) / (2. * float(len(parameters) - 1))
         if args.sweep_type == 'alpha':
-            clim = None # (0., .6)
+            clim = (0., .8)
         else:
             clim = None # (0.04, 0.08)
         norm = colors.PowerNorm(gamma=1)
-        cmap = plt.get_cmap('RdPu')
+        cmap = plt.get_cmap('YlOrRd')
+        cmap = plt.get_cmap('Reds')
         plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
                    clim=clim, norm=norm,
                    extent=[np.min(parameters) - dx, np.max(parameters) + dx, np.min(parameters) - dx, np.max(parameters) + dx])
