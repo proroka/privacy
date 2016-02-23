@@ -125,9 +125,9 @@ def run(args):
         z = np.array(z)
         XI, YI = np.meshgrid(np.arange(1, args.nrobots * _MAX_NROBOTS_FACTOR + 1), np.arange(1, args.nrobots * _MAX_NROBOTS_FACTOR + 1))
         ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
-        clim = (0., 10.)
+        clim = (0.2, 10.)
         norm = colors.PowerNorm(gamma=0.5)
-        cmap = plt.get_cmap('RdPu')
+        cmap = plt.get_cmap('Reds')
         plt.imshow(ZI, cmap=cmap, interpolation='nearest', origin='lower',
                    clim=clim, norm=norm,
                    extent=[0.5, args.nrobots * _MAX_NROBOTS_FACTOR + 0.5, 0.5, args.nrobots * _MAX_NROBOTS_FACTOR + 0.5])

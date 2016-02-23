@@ -139,17 +139,21 @@ def run(args):
         datapoints = np.array((x, y)).T
         parameters = np.array(sorted(list(parameters)))
         # interpolate parameter range for refined image
+        interp = True
         intpar = np.linspace(np.min(parameters),np.max(parameters),len(parameters)*2,endpoint=True)
-        
         z = np.array(z)
-        #XI, YI = np.meshgrid(parameters, parameters)
-        XI, YI = np.meshgrid(intpar, intpar)
-        ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear')
-        dx = (np.max(parameters) - np.min(parameters)) / (2. * float(len(parameters) - 1))
+        XI, YI = np.meshgrid(parameters, parameters)
+        if interp:
+            XI, YI = np.meshgrid(intpar, intpar)
+        ZI = interpolate.griddata(datapoints, z, (XI, YI), method='linear') #'linear'
+        dx = (np.max(parameters) - np.min(parameters)) / (2. * float(len(intpar) - 1))
+        if interp:
+            dx = (np.max(intpar) - np.min(intpar)) / (2. * float(len(intpar) - 1))
+            
         if args.sweep_type == 'alpha':
-            clim = (0., .8)
+            clim = None #(0., .6)
         else:
-            clim = None # (0.04, 0.08)
+            clim = None #(0.04, 0.08)
         norm = colors.PowerNorm(gamma=1)
         cmap = plt.get_cmap('YlOrRd')
         cmap = plt.get_cmap('Reds')

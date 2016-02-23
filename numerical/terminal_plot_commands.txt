@@ -1,0 +1,12 @@
+
+# Plot species sweep
+
+python compare_species_size.py --nrobots 10 --nspecies 3 --load_epsilons data/new/data_1_1_20.bin --save_plot results_species_new.eps
+
+# Plot beta sweep
+
+python compare_species_behavior.py --sweep_type=beta   --load_epsilons data/new/data_beta_1_1_1e-3.bin --nspecies 3 --nrobots 10 --save_plot beta_results_new.eps
+
+# Plot alpha sweep
+
+python compare_species_behavior.py --sweep_type=alpha   --load_epsilons data/new/data_alpha_1_1_1e-3.bin --nspecies 3 --nrobots 10 --save_plot alpha_results_new.eps
