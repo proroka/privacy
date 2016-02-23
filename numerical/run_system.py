@@ -28,7 +28,9 @@ def run(args):
     print ''
 
     # Setup CRN (do not add the collaboration state when computing CME).
-    crn = crn_core.TaskCRNSetup(args.nrobots, args.stochkit_path)
+    #crn = crn_core.TaskCRNSetup(args.nrobots, args.stochkit_path)
+    crn = crn_core.TaskCRNSetup(args.nrobots, args.stochkit_path, alpha=args.alpha, beta=args.beta)
+    
     print 'Running simulation on:'
     print crn, '\n'
 
@@ -50,7 +52,7 @@ def run(args):
         # Plot average.
         plotter.AverageTrajectory()
         # Plot distribution of the species populations.
-        plotter.Distributions(from_timestamp=args.duration / 2.0)
+        plotter.Distributions_Single(from_timestamp=args.duration / 2.0)
 
     # Show plots of the observable data.
     if args.show_observable_plots:
@@ -77,5 +79,9 @@ if __name__ == '__main__':
     parser.add_argument('--show_plots', action='store_true', help='If set, plots are shown after the simulations')
     parser.add_argument('--show_observable_plots', action='store_true', help='If set, plots are shown after the simulations with observable data aggregated')
     parser.add_argument('--cme', action='store_true', help='If set, uses CMEPy instead of StochKit')
+    
+    parser.add_argument('--alpha', metavar='RATE', type=float, nargs='+', required=True, help='Alpha parameters (for all species)')
+    parser.add_argument('--beta', metavar='RATE', type=float, nargs='+', required=True, help='Beta parameters (for all species)')
+    
     # Run.
     run(parser.parse_args())

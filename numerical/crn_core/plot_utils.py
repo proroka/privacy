@@ -92,6 +92,49 @@ class Plotter(object):
         plt.ylabel('Probability')
         return fig, ax
 
+    def Distributions_Single(self, from_timestamp=0.):
+        indices = self.timestamps >= from_timestamp  # Not used for CMEPY.
+        if self.type == Plotter._STOCHKIT:
+            min_population = float('inf')
+            max_population = -1.
+            for i in xrange(self.nspecies):
+                if self.species[i] in self.exclude_list:
+                    continue
+                min_population = min(min_population, np.min(self.trajectories[:, indices, i]))
+                max_population = max(max_population, np.max(self.trajectories[:, indices, i]))
+        elif self.type == Plotter._CMEPY:
+            min_population = float('inf')
+            max_population = -1.
+            for s in self.species:
+                if s in self.exclude_list:
+                    continue
+                for k in self.recorder[s].distributions[-1]:
+                    max_population = max(k[0], max_population)
+                    min_population = min(k[0], min_population)
+        colors = _GetColors(self.nspecies)
+        
+        for i in xrange(self.nspecies):
+            if (i%2 == 0): 
+                fig = plt.figure()
+                ax = fig.add_subplot(111)
+                
+            if self.species[i] in self.exclude_list:
+                continue
+            if self.type == Plotter._STOCHKIT:
+                populations = self.trajectories[:, indices, i].flatten().astype(int)
+                plt.hist(populations, normed=True, bins=np.arange(min_population - 0.5, max_population + 0.5, 1.),
+                         label=self.species[i], color=colors[i], alpha=0.3)
+            elif self.type == Plotter._CMEPY:
+                values = np.zeros((max_population - min_population + 1, ))
+                for k, v in self.recorder[self.species[i]].distributions[-1].iteritems():
+                    values[k[0] - min_population] = v
+                plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
+                        label=self.species[i], color=colors[i], alpha=0.3)
+            if (i%2 == 1):            
+                plt.legend(loc='upper right', shadow=False, fontsize='x-large')
+                plt.xlabel('Population')
+                plt.ylabel('Probability')
+        return fig, ax
 
 def _GetColors(n):
     cm = plt.get_cmap('gist_rainbow')
