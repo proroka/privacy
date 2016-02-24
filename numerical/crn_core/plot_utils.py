@@ -72,7 +72,9 @@ class Plotter(object):
                     max_population = max(k[0], max_population)
                     min_population = min(k[0], min_population)
         colors = _GetColors(self.nspecies)
-        fig = plt.figure()
+        
+        fs=(3,5) 
+        fig = plt.figure(figsize=fs)
         ax = fig.add_subplot(111)
         for i in xrange(self.nspecies):
             if self.species[i] in self.exclude_list:
@@ -90,6 +92,9 @@ class Plotter(object):
         plt.legend(loc='upper right', shadow=False, fontsize='x-large')
         plt.xlabel('Population')
         plt.ylabel('Probability')
+        
+        fig.savefig('results_obs.eps')
+        
         return fig, ax
 
     def Distributions_Single(self, from_timestamp=0.):
@@ -113,11 +118,16 @@ class Plotter(object):
                     min_population = min(k[0], min_population)
         colors = _GetColors(self.nspecies)
         
-        for i in xrange(self.nspecies):
-            if (i%2 == 0): 
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                
+        # figsize
+        fs=(3,5) 
+        set_ylim = True
+        yma = 0.8
+        ymi = 0.
+        #---- 2's w
+        fig = plt.figure(figsize=fs)
+        ax = fig.add_subplot(111)
+        i_ind = [0, 1, 4];
+        for i in i_ind:
             if self.species[i] in self.exclude_list:
                 continue
             if self.type == Plotter._STOCHKIT:
@@ -129,11 +139,82 @@ class Plotter(object):
                 for k, v in self.recorder[self.species[i]].distributions[-1].iteritems():
                     values[k[0] - min_population] = v
                 plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
-                        label=self.species[i], color=colors[i], alpha=0.3)
-            if (i%2 == 1):            
-                plt.legend(loc='upper right', shadow=False, fontsize='x-large')
-                plt.xlabel('Population')
-                plt.ylabel('Probability')
+                        label=self.species[i], color=colors[i], alpha=0.3) 
+        if set_ylim:
+            plt.ylim(ymax = yma, ymin = ymi)                          
+        plt.legend(loc='upper right', shadow=False, fontsize='x-large')
+        plt.xlabel('Population')
+        plt.ylabel('Probability')  
+        fig.savefig('results_2xw.eps')     
+        #---- s1
+        fig = plt.figure(figsize=fs)
+        ax = fig.add_subplot(111)
+        i_ind = [2, 3];
+        for i in i_ind:
+            if self.species[i] in self.exclude_list:
+                continue
+            if self.type == Plotter._STOCHKIT:
+                populations = self.trajectories[:, indices, i].flatten().astype(int)
+                plt.hist(populations, normed=True, bins=np.arange(min_population - 0.5, max_population + 0.5, 1.),
+                         label=self.species[i], color=colors[i], alpha=0.3)
+            elif self.type == Plotter._CMEPY:
+                values = np.zeros((max_population - min_population + 1, ))
+                for k, v in self.recorder[self.species[i]].distributions[-1].iteritems():
+                    values[k[0] - min_population] = v
+                plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
+                        label=self.species[i], color=colors[i], alpha=0.3)    
+        if set_ylim:
+            plt.ylim(ymax = yma, ymin = ymi)                            
+        plt.legend(loc='upper right', shadow=False, fontsize='x-large')
+        plt.xlabel('Population')
+        plt.ylabel('Probability')
+        fig.savefig('results_s1.eps') 
+        #---- s2
+        fig = plt.figure(figsize=fs)
+        ax = fig.add_subplot(111)
+        i_ind = [5, 6];
+        for i in i_ind:
+            if self.species[i] in self.exclude_list:
+                continue
+            if self.type == Plotter._STOCHKIT:
+                populations = self.trajectories[:, indices, i].flatten().astype(int)
+                plt.hist(populations, normed=True, bins=np.arange(min_population - 0.5, max_population + 0.5, 1.),
+                         label=self.species[i], color=colors[i], alpha=0.3)
+            elif self.type == Plotter._CMEPY:
+                values = np.zeros((max_population - min_population + 1, ))
+                for k, v in self.recorder[self.species[i]].distributions[-1].iteritems():
+                    values[k[0] - min_population] = v
+                plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
+                        label=self.species[i], color=colors[i], alpha=0.3)           
+        if set_ylim:
+            plt.ylim(ymax = yma, ymin = ymi)        
+        plt.legend(loc='upper right', shadow=False, fontsize='x-large')
+        plt.xlabel('Population')
+        plt.ylabel('Probability')
+        fig.savefig('results_s2.eps') 
+        #---- s3
+        fig = plt.figure(figsize=fs)
+        ax = fig.add_subplot(111)
+        i_ind = [7, 8];
+        for i in i_ind:
+            if self.species[i] in self.exclude_list:
+                continue
+            if self.type == Plotter._STOCHKIT:
+                populations = self.trajectories[:, indices, i].flatten().astype(int)
+                plt.hist(populations, normed=True, bins=np.arange(min_population - 0.5, max_population + 0.5, 1.),
+                         label=self.species[i], color=colors[i], alpha=0.3)
+            elif self.type == Plotter._CMEPY:
+                values = np.zeros((max_population - min_population + 1, ))
+                for k, v in self.recorder[self.species[i]].distributions[-1].iteritems():
+                    values[k[0] - min_population] = v
+                plt.bar(np.arange(min_population - 0.5, max_population - 0.4, 1.), values, width=1.,
+                        label=self.species[i], color=colors[i], alpha=0.3)           
+        if set_ylim:
+            plt.ylim(ymax = yma, ymin = ymi)        
+        plt.legend(loc='upper right', shadow=False, fontsize='x-large')
+        plt.xlabel('Population')
+        plt.ylabel('Probability')
+        fig.savefig('results_s3.eps') 
         return fig, ax
 
 def _GetColors(n):
