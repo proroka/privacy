@@ -50,7 +50,7 @@ def run(args):
     if args.show_plots:
         plotter = crn_core.Plotter(output)
         # Plot average.
-        #plotter.AverageTrajectory()
+        plotter.AverageTrajectory()
         # Plot distribution of the species populations.
         plotter.Distributions_Single(from_timestamp=args.duration / 2.0)
 
@@ -59,7 +59,7 @@ def run(args):
         aggregated_output = crn_core.TaskCRNExtractObservableData(output)
         plotter = crn_core.Plotter(aggregated_output)
         # Plot average.
-        #plotter.AverageTrajectory()
+        plotter.AverageTrajectory()
         # Plot distribution of the species populations.
         plotter.Distributions(from_timestamp=args.duration / 2.0)
 
