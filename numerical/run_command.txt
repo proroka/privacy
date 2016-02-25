@@ -1,0 +1,1 @@
+python run_system.py --nrobots 10 10 10 --cme --show_plots --show_observable_plots --force --duration=10 --alpha 0.2 0.5 0.8 --beta 0.8 0.5 0.2
